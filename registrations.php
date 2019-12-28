@@ -1,0 +1,933 @@
+
+<?php
+  require 'phpmailer/PHPMailerAutoload.php'; 
+require 'connection.php';
+$conn    = Connect();
+
+
+
+if(isset($_POST['submit']))
+{
+$fullname    = $conn->real_escape_string($_POST['fullname']);
+$email    = $conn->real_escape_string($_POST['email']);
+$password    = $conn->real_escape_string($_POST['password']);
+
+$country    = $conn->real_escape_string($_POST['county']);
+
+
+
+/*$surname    = $conn->real_escape_string($_POST['surname']);
+$username    = $conn->real_escape_string($_POST['username']);
+$gender   = $conn->real_escape_string($_POST['gender']);
+$age    = $conn->real_escape_string($_POST['age']);
+$country = $conn->real_escape_string($_POST['country']);
+$nationality = $conn->real_escape_string($_POST['nationality']);
+//$address = $conn->real_escape_string($_POST['address']);
+$phone = $conn->real_escape_string($_POST['phone']);
+$file = addslashes(file_get_contents($_FILES["myimage"]["tmp_name"]));
+$hearus = $conn->real_escape_string($_POST['hearus']);
+$areuborn = $conn->real_escape_string($_POST['bornagain']);
+$woulduborn = $conn->real_escape_string($_POST['woulduborn']);
+$areuholy = $conn->real_escape_string($_POST['holy']);
+$woulduholy = $conn->real_escape_string($_POST['woulduholy']);*/
+
+
+$timezone  = +1; //(GMT -5:00) EST (U.S. & Canada)
+$time_date = gmdate("d-M-Y H:i a", time() + 3600*($timezone+date("I")));
+$com_code = md5(uniqid(rand()));
+       
+//echo gmdate("Y/m/j H:i:s", time() + 3600*($timezone+date("I"))); 
+//var_dump($_POST);
+
+if (!empty($_POST['fullname']) && !empty($_POST['email'])&& !empty($_POST['password'])&& !empty($_POST['county'])) {
+
+  $sql = "SELECT email FROM users WHERE email = '$email'";
+      $result = mysqli_query($conn,$sql);
+      $row = mysqli_fetch_assoc($result);
+      $count = mysqli_num_rows($result);
+        
+        if($count == 0){
+
+          $query   = "INSERT into users (firstname,email,password,country,com_code,created) VALUES('" . $fullname . "','" . $email . "','" . $password . "','" . $country . "','" . $com_code . "','" . $time_date . "')";
+
+
+
+//echo $query;
+$success = $conn->query($query);
+
+         
+         
+          
+        } else {
+          
+       echo '<script>alert("Email already exist! Kindly provide another email.")</script>';
+        
+  
+   }
+//echo "$success";
+}
+
+ 
+ elseif (empty($_POST['fullname']) && empty($_POST['email'])&& empty($_POST['password'])&& empty($_POST['county'])) {
+ 
+ echo '<script>alert("Kindly fill all fields to register, thank you!")</script>';
+ }
+
+ if($success)
+{
+
+  
+ $mail = new PHPMailer;
+
+//$mail->SMTPDebug = 3;                               // Enable verbose debug output
+
+$mail->isSMTP();                                      // Set mailer to use SMTP
+$mail->Host = 'globalyouthleadersforum.org';  // Specify main and backup SMTP servers
+$mail->SMTPAuth = true;                               // Enable SMTP authentication
+$mail->Username = 'contact@globalyouthleadersforum.org';                 // SMTP username
+$mail->Password = 'Tg7RNPEnUclV';                           // SMTP password
+$mail->SMTPSecure = 'ssl';                            // Enable TLS encryption, `ssl` also accepted
+$mail->Port = 465;                                    // TCP port to connect to
+
+$mail->setFrom('noreply@globalyouthleadersforum.org', "Global Youth Leaders' Forum");
+$mail->addAddress($email, $firstname);     // Add a recipient
+$mail->addAddress($email);               // Name is optional
+$mail->addReplyTo('contact@globalyouthleadersforum.org', "Global Youth Leaders' Forum");
+//$mail->addCC('iexcel4ever@gmail.com');
+$mail->addBCC('contact@globalyouthleadersforum.org');
+
+//$mail->addAttachment('/var/tmp/file.tar.gz');         // Add attachments
+//$mail->addAttachment('/tmp/image.jpg', 'new.jpg');    // Optional name
+$mail->isHTML(true);                                  // Set email format to HTML
+
+$mail->Subject = 'GYLF Academy Account Activation';
+$mail->Body    = "
+
+Dear $fullname,<br><br>
+
+You have successfully registered for the GYLF Academy.<br>
+Kindly follow the link below to activate your account.<br>
+http://www.globalyouthleadersforum.org/gylf_academy/confirm.php?passkey=$com_code<br><br><br>
+
+
+Thank you<br>
+
+The GYLF Academy.
+
+
+"
+
+
+
+
+
+;
+$mail->AltBody = "
+
+Dear $firstname $surname,<br><br>
+
+You have successfully registration for the GYLF Academy.<br>
+Kindly follow the link below to activate your account.<br><br><br>
+http://www.globalyouthleadersforum.org/gylf_academy/confirm.php?passkey=$com_code<br>
+
+Invite your friends and family to join the GYLF Academy.<br>
+
+http://www.globalyouthleadersforum.org/gylf_member_invite.php
+
+<br><br>
+
+
+
+Thank you<br>
+
+The GYLF Academy.
+
+
+";
+
+if(!$mail->send()) {
+    echo 'Message could not be sent.';
+    echo 'Mailer Error: ' . $mail->ErrorInfo;
+} else {
+   //echo "<div align='center'>Congratulations! You have successfully registered. Check you email to confirm your registration.</div>";
+   echo '<script>alert("Congratulations! You have successfully registered. Check your email to activate your account.")</script>';
+
+ echo '<script>
+  window.location.href = "http://www.globalyouthleadersforum.org/gylf_member_invite.php";
+</script>';
+
+}
+
+ 
+$conn->close();
+}
+
+else
+{
+  //echo "<div align='center'>Unsuccessful.</div>";
+}
+}
+ 
+?>
+
+
+<!DOCTYPE html>
+<!--[if IE 8]> <html class="ie8 oldie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Global Youth Leaders' Forum Academy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+  <link rel="stylesheet" media="all" href="css/style.css">
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+  
+   <script type="text/javascript"
+                          src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" ></script>
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.2/jquery-ui.min.js"></script>‌​
+                      <script>      
+function born(str){
+
+     var selection = str;
+     
+    switch(selection){
+    case "noborn":
+    $("#notborn").show()
+   break;
+    default:
+    $("#notborn").hide()
+    }
+}
+
+function holyfunc(str){
+
+     var selection = str;
+    //alert(selection); 
+    switch(selection){
+    case "noholy":
+    $("#notholy").show()
+   break;
+    default:
+    $("#notholy").hide()
+    }
+}
+
+
+
+                          </script>
+
+    <script type="text/javascript">
+
+  
+        
+     function validate()
+      {
+    
+
+
+if( document.signupform.county.value == "unspecified" )
+         {
+            alert( "Please select your Country!" );
+            document.signupform.county.focus() ;
+            return false;
+         }
+
+     
+         return( true );
+      }
+      </script>
+
+<script type='text/javascript'>
+function preview_image(event) 
+{
+ var reader = new FileReader();
+ reader.onload = function()
+ {
+  var output = document.getElementById('output_image');
+  output.src = reader.result;
+ }
+ reader.readAsDataURL(event.target.files[0]);
+}
+
+
+</script>
+
+<script type="text/javascript">function add_chatinline(){var hccid=31552097;var nt=document.createElement("script");nt.async=true;nt.src="https://mylivechat.com/chatinline.aspx?hccid="+hccid;var ct=document.getElementsByTagName("script")[0];ct.parentNode.insertBefore(nt,ct);}
+add_chatinline(); </script>
+
+</head>
+<body onload="invisible()">
+
+   <header id="header">
+    <div class="container">
+      <a href="index.php" id="logo" title="GYLF Academy">GYLF Academy</a>
+      <div class="menu-trigger"></div>
+      <nav id="menu">
+        <ul>
+          <!--li><a href="events.html">Students</a></li-->
+          <li><a href="index.php">Home</a></li>
+         <li><a href="#about">About us</a></li>
+          <li><a href="http://globalyouthleadersforum.org/gylf_academy/#sidebar">Courses</a></li>
+          <!--li><a href="gallery.php">Students</a></li-->
+          
+        </ul>
+        <ul>
+          <!--li><a href="gallery.php">Gallery</a></li-->
+          <li><a href="events.php">Events</a></li>
+          
+          <li><!--a href="#fancy" class="get-contact"--><a href="contact.php">Contact</a></li>
+          <li class="current"><a href="registrations.php">Register</a></li>
+          </ul>
+      </nav>
+      <!-- / navigation -->
+    </div>
+    <!-- / container -->
+  <br>
+  <br>
+  </header>
+  <!-- / header -->
+
+
+<!--div class="divider"></div-->
+  <div class="container" align="center">
+  
+  <div style = "width:350px; border: solid 3px #008bc4; " align="center">
+    <!--h2>Request information</h2-->
+    <div id="signup" align="center">
+        
+           <h2><div style = "background-color:#008bc4; color:#FFFFFF; padding:5px"><center><b>Sign Up</b></center></div></h2>
+            <?php echo !empty($statusMsg)?'<p class="'.$statusMsgType.'">'.$statusMsg.'</p>':''; ?>
+        <center><p><font size="2.5" color="#008bc4"><strong><u>NB</u>:</strong> Use valid email for verification purpose and maximum image size of 500KB</font></p></center>
+            <div style = "margin:20px">
+               
+               <form action = "registrations.php" method = "post" id="signupform" name="signupform" enctype="multipart/form-data" onsubmit="return(validate());">
+                                 <div class="form-group">
+                                 <label><font color="#008bc4">Fullname:</font></label>
+                              <input type="text" name="fullname" id="fullname" class="form-control" style="border:2px solid #008bc4; padding: 20px; padding-left: 60px; padding-right: 50px; text-align: center;" required>
+                          </div>
+                          <br>
+
+
+              <!--div class="form-group">
+              <label><font color="#008bc4">Surname:</font></label>
+                              <input type="text" name="surname" id="surname" class="form-control" style="border:2px solid #008bc4; padding: 20px; padding-left: 60px; padding-right: 50px; text-align: center;" required>
+                          </div>
+                          <br-->
+
+                          <!--div class="form-group">
+                          <label><font color="#008bc4">Username:</font></label>
+                              <input type="text" name="username" id="username" class="form-control" style="border:2px solid #008bc4; padding: 20px; padding-left: 60px; padding-right: 50px; text-align: center;" required>
+                          </div>
+                          <br-->
+
+                          <div class="form-group">
+                          <label><font color="#008bc4">Email Address:</font></label>
+                              <input type="text" name="email" id="email" class="form-control" style="border:2px solid #008bc4; padding: 20px; padding-left: 60px; padding-right: 50px; text-align: center;" required>
+                          </div>
+                          <br>
+
+                          <div class="form-group">
+                          <label><font color="#008bc4">Choose Password:</font></label>
+                              <input type="password" name="password" class="form-control" style="border:2px solid #008bc4; padding: 20px; padding-left: 60px; padding-right: 50px; text-align: center;" required>
+                          </div>
+                          <br>
+
+ <!--div class="form-group">
+ <label><font color="#008bc4">Gender:</font></label>
+                            <fieldset class="center" style="border:2px solid #008bc4; padding: 1px; padding-left: 10px; padding-right: 10px; text-align: center;" required>
+
+                            
+
+                            <select class="center" id="gender" name="gender">
+
+                            <option value="unspecified" selected="selected" style="text-align: center;"></option>
+                                                                  <option value="male">Male</option>
+                                                                  <option value="female">Female</option>
+
+                            </select>
+
+                            </fieldset>
+
+                          </div>
+                          <br-->
+
+                           <!--div style="height:0px;overflow:hidden">
+   <input type="file" id="profileimg" name="profileimg" />
+</div-->
+<!--button class="btn blue" type="button" onclick="chooseFile();">Choose Profile Image</button-->
+
+<!--script>
+   function chooseFile() {
+      $("#profileimg").click();
+   }
+</script-->
+              
+ <!--div class="form-group">
+ 
+<label><font color="#008bc4">Profile Image (maximum image size of 500KB):</font></label>
+
+ <input type="file" name="myimage" id="myimage" accept="image/*" onchange="checkPhoto(this)" style="border:2px solid #008bc4; padding: 20px; padding-left: 25px; padding-right: 23px; text-align: center;" >
+
+
+<script type="text/javascript">
+  
+/*var uploadField = document.getElementById("myimage");
+
+uploadField.onchange = function() {
+  
+
+if( this.files[0].width <= 800 && this.files[0].height <= 800) {
+                form.submit();
+            }
+            else {
+                alert('Image dimension too large! Maximum size of 800 x 800 in pixel');
+                 this.value = "";
+            };
+
+};*/
+
+
+var uploadField = document.getElementById("myimage");
+
+uploadField.onchange = function() {
+    if(this.files[0].size > 507200){
+       alert("Image too large! Maximum size of 500KB");
+       this.value = "";
+    };
+};
+
+</script>
+
+
+ </div>
+ <br-->
+<!--img id="output_image" width="50" height="50"-->
+
+
+
+
+
+
+
+
+
+                          <!--div class="form-group">
+<label><font color="#008bc4">Age:</font></label>
+<fieldset class="center" style="border:2px solid #008bc4; padding: 1px; padding-left: 10px; padding-right: 10px; text-align: center;" required>
+
+                            <select class="center" name="age" id="age">
+
+                            <option value="unspecified" selected="selected" style="text-align: center;"></option>
+                                                                  <option value="13">13</option>
+                                                                  <option value="14">14</option>
+                                                                  <option value="15">15</option>
+                                                                  <option value="16">16</option>
+                                                                  <option value="17">17</option>
+                                                                  <option value="18">18</option>
+                                                                  <option value="19">19</option>
+                                                                  <option value="20">20</option>
+                                                                  <option value="21">21</option>
+                                                                  <option value="22">22</option>
+                                                                  <option value="23">23</option>
+                                                                  <option value="24">24</option>
+                                                                  <option value="25">25</option>
+
+                            </select>
+
+                            </fieldset>
+
+
+                          </div>
+<br-->
+<div class="form-group">
+<label><font color="#008bc4">Country:</font></label>
+<fieldset class="center" style="border:2px solid #008bc4; padding: 1px; padding-left: 5px; padding-right: 5px; text-align: center;" required>
+
+                               <select class="form-control" style="border:1px solid orange;" name="county" id="county" required >
+                                          <option value="unspecified" selected="selected"> Please Select Your Country </option>
+<option value="Afghanistan">Afghanistan</option>
+<option value="Aland Island">Aland Island</option>
+<option value="Albania">Albania</option>
+<option value="Algeria">Algeria</option>
+<option value="American Samoa">American Samoa</option>
+<option value="Andorra">Andorra</option>
+<option value="Angola">Angola</option>
+<option value="Anguilla">Anguilla</option>
+<option value="Antigua &amp; Barbuda">Antigua &amp; Barbuda</option>
+<option value="Argentina">Argentina</option>
+<option value="Armenia">Armenia</option>
+<option value="Aruba">Aruba</option>
+<option value="Australia">Australia</option>
+<option value="Austria">Austria</option>
+<option value="Azerbaijan">Azerbaijan</option>
+<option value="Bahamas">Bahamas</option>
+<option value="Bahrain">Bahrain</option>
+<option value="Bangladesh">Bangladesh</option>
+<option value="Barbados">Barbados</option>
+<option value="Belarus">Belarus</option>
+<option value="Belgium">Belgium</option>
+<option value="Belize">Belize</option>
+<option value="Benin">Benin</option>
+<option value="Bermuda">Bermuda</option>
+<option value="Bhutan">Bhutan</option>
+<option value="Bolivia">Bolivia</option>
+<option value="Bonaire">Bonaire</option>
+<option value="Bosnia &amp; Herzegovina">Bosnia &amp; Herzegovina</option>
+<option value="Botswana">Botswana</option>
+<option value="Bouvet Island">Bouvet Island</option>
+<option value="Brazil">Brazil</option>
+<option value="British Indian Ocean Ter">British Indian Ocean Ter</option>
+<option value="Brunei">Brunei</option>
+<option value="Bulgaria">Bulgaria</option>
+<option value="Burkina Faso">Burkina Faso</option>
+<option value="Burundi">Burundi</option>
+<option value="Cambodia">Cambodia</option>
+<option value="Cameroon">Cameroon</option>
+<option value="Canada">Canada</option>
+<option value="Cape Verde">Cape Verde</option>
+<option value="Cayman Islands">Cayman Islands</option>
+<option value="Central African Republic">Central African Republic</option>
+<option value="Chad">Chad</option>
+<option value="Chile">Chile</option>
+<option value="China">China</option>
+<option value="Christmas Island">Christmas Island</option>
+<option value="Cocos Island">Cocos Island</option>
+<option value="Colombia">Colombia</option>
+<option value="Comoros">Comoros</option>
+<option value="Congo">Congo</option>
+<option value="Cook Islands">Cook Islands</option>
+<option value="Costa Rica">Costa Rica</option>
+<option value="Cote DIvoire">Cote D'Ivoire</option>
+<option value="Croatia">Croatia</option>
+<option value="Cuba">Cuba</option>
+<option value="Curaco">Curacao</option>
+<option value="Cyprus">Cyprus</option>
+<option value="Czech Republic">Czech Republic</option>
+<option value="Denmark">Denmark</option>
+<option value="Djibouti">Djibouti</option>
+<option value="Dominica">Dominica</option>
+<option value="Dominican Republic">Dominican Republic</option>
+<option value="Ecuador">Ecuador</option>
+<option value="Egypt">Egypt</option>
+<option value="El Salvador">El Salvador</option>
+<option value="Equatorial Guinea">Equatorial Guinea</option>
+<option value="Eritrea">Eritrea</option>
+<option value="Estonia">Estonia</option>
+<option value="Ethiopia">Ethiopia</option>
+<option value="Falkland Islands">Falkland Islands</option>
+<option value="Faroe Islands">Faroe Islands</option>
+<option value="Fiji">Fiji</option>
+<option value="Finland">Finland</option>
+<option value="France">France</option>
+<option value="French Guiana">French Guiana</option>
+<option value="French Polynesia">French Polynesia</option>
+<option value="French Southern Ter">French Southern Territories</option>
+<option value="Gabon">Gabon</option>
+<option value="Gambia">Gambia</option>
+<option value="Georgia">Georgia</option>
+<option value="Germany">Germany</option>
+<option value="Ghana">Ghana</option>
+<option value="Gibraltar">Gibraltar</option>
+<option value="Greece">Greece</option>
+<option value="Greenland">Greenland</option>
+<option value="Grenada">Grenada</option>
+<option value="Guadeloupe">Guadeloupe</option>
+<option value="Guam">Guam</option>
+<option value="Guatemala">Guatemala</option>
+<option value="Guernsey">Guernsey</option>
+<option value="Guinea">Guinea</option>
+<option value="Guinea-Bissau">Guinea-Bissau</option>
+<option value="Guyana">Guyana</option>
+<option value="Haiti">Haiti</option>
+
+<option value="Heard Island and McDonald Mcdonald Islands">Heard Island and McDonald Mcdonald Islands</option>
+<option value="Holy See (Vatican City State)">Holy See (Vatican City State)</option>
+<option value="Honduras">Honduras</option>
+<option value="Hong Kong">Hong Kong</option>
+<option value="Hungary">Hungary</option>
+<option value="Iceland">Iceland</option>
+<option value="India">India</option>
+<option value="Indonesia">Indonesia</option>
+<option value="Iran">Iran</option>
+<option value="Iraq">Iraq</option>
+<option value="Ireland">Ireland</option>
+<option value="Isle of Man">Isle of Man</option>
+<option value="Israel">Israel</option>
+<option value="Italy">Italy</option>
+<option value="Jamaica">Jamaica</option>
+<option value="Japan">Japan</option>
+<option value="Jersey">Jersey</option>
+<option value="Jordan">Jordan</option>
+<option value="Kazakhstan">Kazakhstan</option>
+<option value="Kenya">Kenya</option>
+<option value="Kiribati">Kiribati</option>
+<option value="Korea, Democratic People's Republic of">Korea, Democratic People's Republic of</option>
+<option value="Korea, Republic of">Korea, Republic of</option>
+<option value="Kosovo">Kosovo</option>
+<option value="Kuwait">Kuwait</option>
+<option value="Kyrgyzstan">Kyrgyzstan</option>
+<option value="Laos">Laos</option>
+<option value="Latvia">Latvia</option>
+<option value="Lebanon">Lebanon</option>
+<option value="Lesotho">Lesotho</option>
+<option value="Liberia">Liberia</option>
+<option value="Libya">Libya</option>
+<option value="Liechtenstein">Liechtenstein</option>
+<option value="Lithuania">Lithuania</option>
+<option value="Luxembourg">Luxembourg</option>
+<option value="Macau">Macau</option>
+<option value="Macedonia">Macedonia</option>
+<option value="Madagascar">Madagascar</option>
+<option value="Malaysia">Malaysia</option>
+<option value="Malawi">Malawi</option>
+<option value="Maldives">Maldives</option>
+<option value="Mali">Mali</option>
+<option value="Malta">Malta</option>
+<option value="Marshall Islands">Marshall Islands</option>
+<option value="Martinique">Martinique</option>
+<option value="Mauritania">Mauritania</option>
+<option value="Mauritius">Mauritius</option>
+<option value="Mayotte">Mayotte</option>
+<option value="Mexico">Mexico</option>
+<option value="Micronesia, Federated States of">Micronesia, Federated States of</option>
+<option value="Moldova">Moldova</option>
+<option value="Monaco">Monaco</option>
+<option value="Mongolia">Mongolia</option>
+<option value="Montenegro">Montenegro</option>
+<option value="Montserrat">Montserrat</option>
+<option value="Morocco">Morocco</option>
+<option value="Mozambique">Mozambique</option>
+<option value="Myanmar">Myanmar</option>
+<option value="Nambia">Nambia</option>
+<option value="Nauru">Nauru</option>
+<option value="Nepal">Nepal</option>
+<option value="Netherland Antilles">Netherland Antilles</option>
+<option value="Netherlands">Netherlands (Holland, Europe)</option>
+<option value="Nevis">Nevis</option>
+<option value="New Caledonia">New Caledonia</option>
+<option value="New Zealand">New Zealand</option>
+<option value="Nicaragua">Nicaragua</option>
+<option value="Niger">Niger</option>
+<option value="Nigeria">Nigeria</option>
+<option value="Niue">Niue</option>
+<option value="Norfolk Island">Norfolk Island</option>
+
+<option value="Northern Mariana Islands">Northern Mariana Islands</option>
+<option value="Norway">Norway</option>
+<option value="Oman">Oman</option>
+<option value="Pakistan">Pakistan</option>
+<option value="Palau Island">Palau Island</option>
+<option value="Palestine">Palestine</option>
+<option value="Panama">Panama</option>
+<option value="Papua New Guinea">Papua New Guinea</option>
+<option value="Paraguay">Paraguay</option>
+<option value="Peru">Peru</option>
+<option value="Phillipines">Philippines</option>
+<option value="Pitcairn Island">Pitcairn Island</option>
+<option value="Poland">Poland</option>
+<option value="Portugal">Portugal</option>
+<option value="Puerto Rico">Puerto Rico</option>
+<option value="Qatar">Qatar</option>
+<option value="Republic of Montenegro">Republic of Montenegro</option>
+<option value="Republic of Serbia">Republic of Serbia</option>
+<option value="Reunion">Reunion</option>
+<option value="Romania">Romania</option>
+<option value="Russia">Russia</option>
+<option value="Rwanda">Rwanda</option>
+<option value="St Barthelemy">St Barthelemy</option>
+<option value="St Eustatius">St Eustatius</option>
+<option value="St Helena">St Helena</option>
+<option value="St Kitts-Nevis">St Kitts-Nevis</option>
+<option value="St Lucia">St Lucia</option>
+<option value="St Martin">St Martin</option>
+<option value="St Pierre &amp; Miquelon">St Pierre &amp; Miquelon</option>
+<option value="St Vincent &amp; Grenadines">St Vincent &amp; Grenadines</option>
+<option value="Saipan">Saipan</option>
+<option value="Samoa">Samoa</option>
+<option value="San Marino">San Marino</option>
+<option value="Sao Tome &amp; Principe">Sao Tome &amp; Principe</option>
+<option value="Saudi Arabia">Saudi Arabia</option>
+<option value="Senegal">Senegal</option>
+<option value="Serbia">Serbia</option>
+<option value="Seychelles">Seychelles</option>
+<option value="Sierra Leone">Sierra Leone</option>
+<option value="Singapore">Singapore</option>
+
+<option value="Sint Maarten (Dutch part)">Sint Maarten (Dutch part)</option>
+<option value="Slovakia">Slovakia</option>
+<option value="Slovenia">Slovenia</option>
+<option value="Solomon Islands">Solomon Islands</option>
+<option value="Somalia">Somalia</option>
+<option value="South Africa">South Africa</option>
+<option value="Spain">Spain</option>
+<option value="Sri Lanka">Sri Lanka</option>
+<option value="Sudan">Sudan</option>
+<option value="Suriname">Suriname</option>
+
+<option value="Svalbard and Jan Mayen">Svalbard and Jan Mayen</option>
+<option value="Swaziland">Swaziland</option>
+<option value="Sweden">Sweden</option>
+<option value="Switzerland">Switzerland</option>
+<option value="Syria">Syria</option>
+<option value="Tahiti">Tahiti</option>
+<option value="Taiwan">Taiwan</option>
+<option value="Tajikistan">Tajikistan</option>
+<option value="Tanzania">Tanzania</option>
+<option value="Thailand">Thailand</option>
+
+<option value="Timor-Leste">Timor-Leste</option>
+<option value="Togo">Togo</option>
+<option value="Tokelau">Tokelau</option>
+<option value="Tonga">Tonga</option>
+<option value="Trinidad &amp; Tobago">Trinidad &amp; Tobago</option>
+<option value="Tunisia">Tunisia</option>
+<option value="Turkey">Turkey</option>
+<option value="Turkmenistan">Turkmenistan</option>
+<option value="Turks &amp; Caicos Is">Turks &amp; Caicos Is</option>
+<option value="Tuvalu">Tuvalu</option>
+<option value="Uganda">Uganda</option>
+<option value="Ukraine">Ukraine</option>
+<option value="United Arab Erimates">United Arab Emirates</option>
+<option value="United Kingdom">United Kingdom</option>
+<option value="United States of America">United States of America</option>
+
+<option value="United States Minor Outlying Islands">United States Minor Outlying Islands</option>
+<option value="Uraguay">Uruguay</option>
+<option value="Uzbekistan">Uzbekistan</option>
+<option value="Vanuatu">Vanuatu</option>
+<option value="Vatican City State">Vatican City State</option>
+<option value="Venezuela">Venezuela</option>
+<option value="Vietnam">Vietnam</option>
+<option value="Virgin Islands (Brit)">Virgin Islands (Brit)</option>
+<option value="Virgin Islands (USA)">Virgin Islands (USA)</option>
+<option value="Wake Island">Wake Island</option>
+<option value="Wallis &amp; Futana Is">Wallis &amp; Futana Is</option>
+
+<option value="Western Sahara">Western Sahara</option>
+<option value="Yemen">Yemen</option>
+<option value="Zaire">Zaire</option>
+<option value="Zambia">Zambia</option>
+<option value="Zimbabwe">Zimbabwe</option>
+</select>
+                                        </select>
+                          
+                            </fieldset>
+                            </div>
+                            <br>
+
+<!--div class="form-group">
+<label><font color="#008bc4">Nationality:</font></label>
+                              <input type="text" name="nationality" class="form-control" style="border:2px solid #008bc4; padding: 20px; padding-left: 60px; padding-right: 50px; text-align: center;" required>
+                          </div>
+                          <br>
+
+
+                          <div class="form-group">
+                          <label><font color="#008bc4">Phone Number:</font></label>
+                              <input type="phone" name="phone" class="form-control" style="border:2px solid #008bc4; padding: 20px; padding-left: 60px; padding-right: 50px; text-align: center;" required>
+                          </div>
+                          <br>
+
+                         <div class="form-group" class="left">
+                         <label><font color="#008bc4">How did you hear about us?:</font></label>
+                            <fieldset class="center" style="border:2px solid #008bc4; padding: 1px; text-align: center;" required>
+
+                            <select class="center" id="hearus" name="hearus">
+
+                            <option value="unspecified" selected="selected" style="text-align: center;"></option>
+                                                                  <option value="socialmedia">Social Media</option>
+                                                                  <option value="afriend">A Friend</option>
+                                                                  <option value="onlineadvert">Online Advertisement</option>
+                                                                  <option value="student">Student Profile Page</option>
+
+                            </select>
+
+                            </fieldset>
+
+                          </div>
+
+
+                          <br>
+
+<div class="form-group" class="left">
+                         <label><font color="#008bc4">Are you born again?:</font></label>
+                            <fieldset class="center" style="border:2px solid #008bc4; padding: 1px; text-align: center;" required>
+
+                            <select class="center" id="bornagain" name="bornagain" onchange="born(this.value)">
+
+                            <option value="unspecified" selected="selected" style="text-align: center;"></option>
+                                                                  <option value="yesborn">Yes</option>
+                                                                  <option value="noborn">No</option>
+                                                                
+                            </select>
+
+                            </fieldset>
+
+                          </div>
+
+                          <br>
+
+                           <div class="form-group" id="notborn">
+                          <label><font color="#008bc4">Would you like to be born again?:</font></label>
+                              <fieldset class="center" style="border:2px solid #008bc4; padding: 1px; text-align: center;" required>
+
+                            <select class="center" id="woulduborn" name="woulduborn">
+
+                            <option value="unspecified" selected="selected" style="text-align: center;"></option>
+                                                                  <option value="bornyes">Yes</option>
+                                                                  <!--option value="bornno">No</option-->
+                                                                
+                            <!--/select>
+
+                            </fieldset>
+                          </div>
+                          <br>
+
+<div class="form-group" class="left">
+                         <label><font color="#008bc4">Are you filled with the Holy Spirit?:</font></label>
+                            <fieldset class="center" style="border:2px solid #008bc4; padding: 1px; text-align: center;" required>
+
+                            <select class="center" id="holy" name="holy" onchange="holyfunc(this.value)">
+
+                            <option value="unspecified" selected="selected" style="text-align: center;"></option>
+                                                                  <option value="yesholy">Yes</option>
+                                                                  <option value="noholy">No</option>
+                                                                
+                            </select>
+
+                            </fieldset>
+
+                          </div>
+
+                          <br>
+
+                           <div class="form-group" id="notholy">
+                          <label><font color="#008bc4">Would you like to receive the Holy Spirit?:</font></label>
+                              <fieldset class="center" style="border:2px solid #008bc4; padding: 1px; text-align: center;" required>
+
+                            <select class="center" id="woulduholy" name="woulduholy">
+
+                            <option value="unspecified" selected="selected" style="text-align: center;"></option>
+                                                                  <option value="holyyes">Yes</option>
+                                                                  <!--option value="bornno">No</option-->
+                                                                
+                            <!--/select>
+
+                            </fieldset>
+                          </div-->
+
+                          <br>
+                          
+
+
+                         
+
+
+<center><a href="login.php"><strong><b><font color="#008bc4">Already a member? Sign in</font></b></strong></a></center>
+                          </div>
+
+                          <br>
+
+                  <!--div class="form-group">
+                            <center><input type = "submit" value = " Submit " style="background:rgb(255,165,0); padding: 10px; border: 0; text-align: center; font-size: 16px;color:#ffffff "/></center-->
+
+
+<!--button class="btn blue" name="signupSubmit" id="signupSubmit" type="submit">Submit</button-->
+
+ <div class="form-group">
+                            <button class="btn blue" type="submit" value="submit" id="submit" name="submit" class="btn btn-primary pull-right">Register</button>
+                        </div>
+                        </div>
+
+
+
+
+               </form>
+               
+               <div style = "font-size:11px; color:#cc0000; margin-top:10px"><?php echo $error; ?></div>
+          
+      
+      </div>
+  </div>
+
+  </div>
+
+  
+  <br>
+  <br>
+
+<footer id="footer">
+    <div class="container">
+      <section>
+        <article class="col-1">
+          <h3>Contact</h3>
+          <ul>
+            <li class="address"><a href="#">303, Pretoria Avenue, Cnr. Harley and Bram Fischer Drive, Randburg, Johannesburg,<br>Gauteng, South Africa.</a></li>
+            <li class="mail"><a href="#">contact@globalyouthleadersforum.org</a></li>
+            <li class="phone last"><a href="#">(+27)-113-262-467</a></li>
+          </ul>
+        </article>
+        <article class="col-2">
+          <h3>COURSES OFFERED</h3>
+          <ul>
+            <li>Principles of Leadership</li>
+            <li>Project Management</li>
+            <li>Finance Management /Wealth Creation</li>
+            <li>Human Resource Management</li>
+            <li class="last">Technology Optimization</li>
+          </ul>
+        </article>
+        <article class="col-3">
+          <h3>Social media</h3>
+          <p>Follow us on our social media handle.</p>
+          <ul>
+            <li class="facebook"><a href="#">Kingschat</a></li>
+            <!--li class="google-plus"><a href="#">Google+</a></li>
+            <li class="twitter"><a href="#">Twitter</a></li>
+            <li class="pinterest"><a href="#">Pinterest</a></li-->
+          </ul>
+        </article>
+        <article class="col-4">
+          <h3>Newsletter</h3>
+          <p>Subscribe for our newsletter</p>
+          <form action="#">
+            <input placeholder="Email address..." type="text">
+            <button type="submit">Subscribe</button>
+          </form>
+          <ul>
+            <li><a href="#"></a></li>
+          </ul>
+        </article>
+      </section>
+      <p class="copy">Copyright © GYLF Academy. Designed by <a href="" title="Designed by GYLF Academy" target="_blank">Copyright © GYLF Academy</a>. All rights reserved.</p>
+    </div>
+    <!-- / container -->
+  </footer>
+  <!-- / footer -->
+
+ <div id="fancy">
+    <h2>Request information</h2>
+    <form action="#">
+      <div class="left">
+        <fieldset class="mail"><input placeholder="Email address..." type="text"></fieldset>
+        <fieldset class="name"><input placeholder="Name..." type="text"></fieldset>
+        <fieldset class="subject"><select><option>Choose subject...</option><option>Choose subject...</option><option>Choose subject...</option></select></fieldset>
+      </div>
+      <div class="right">
+        <fieldset class="question"><textarea placeholder="Question..."></textarea></fieldset>
+      </div>
+      <div class="btn-holder">
+        <button class="btn blue" type="submit">Send request</button>
+      </div>
+    </form>
+  </div>
+
+
+
+  <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+  <script>window.jQuery || document.write("<script src='js/jquery-1.11.1.min.js'>\x3C/script>")</script>
+  <script src="js/plugins.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<?php
+session_start();
+$sessData = !empty($_SESSION['sessData'])?$_SESSION['sessData']:'';
+if(!empty($sessData['status']['msg'])){
+    $statusMsg = $sessData['status']['msg'];
+    $statusMsgType = $sessData['status']['type'];
+    unset($_SESSION['sessData']['status']);
+}
+?>
+<div class="container">
+    <?php
+        if(!empty($sessData['userLoggedIn']) && !empty($sessData['userID'])){
+            include 'user.php';
+            $user = new User();
+            $conditions['where'] = array(
+                'id' => $sessData['userID'],
+            );
+            $conditions['return_type'] = 'single';
+            $userData = $user->getRows($conditions);
+    ?>
+    <h2>Welcome <?php echo $userData['first_name']; ?>!</h2>
+    <a href="userAccount.php?logoutSubmit=1" class="logout">Logout</a>
+    <div class="regisFrm">
+        <p><b>Name: </b><?php echo $userData['first_name'].' '.$userData['last_name']; ?></p>
+        <p><b>Email: </b><?php echo $userData['email']; ?></p>
+        <p><b>Phone: </b><?php echo $userData['phone']; ?></p>
+    </div>
+    <?php }else{ ?>
+    <h2>Login to Your Account</h2>
+    <?php echo !empty($statusMsg)?'<p class="'.$statusMsgType.'">'.$statusMsg.'</p>':''; ?>
+    <div class="regisFrm">
+  
+
+                                 <div class="form-group">
+                              <input type="text" name="confpass" class="form-control" placeholder="Email" required style="border:2px solid #008bc4; padding: 10px; padding-left: 100px; padding-right: 100px; text-align: center;" required>
+                          </div>
+                          <br>
+
+
+
+
+              <div class="form-group">
+                              <input type="password" name="confpass" class="form-control" placeholder="Password" required style="border:2px solid #008bc4; padding: 10px; padding-left: 100px; padding-right: 100px; text-align: center;" required>
+                          </div>
+
+                          <div class="form-group">
+
+<br>
+<center><a href="#signup" class="get-contact"><strong><b>Not a member? Sign up</b></strong></a></center>
+                          </div>
+
+                          <br>
+
+                  <div class="form-group">
+                            <!--center><input type = "submit" value = " Submit " style="background:rgb(255,165,0); padding: 10px; border: 0; text-align: center; font-size: 16px;color:#ffffff "/></center-->
+
+<button class="btn blue" type="submit">Submit</button>
+
+                        </div>
+
+
+               </form>
+                <p>Don't have an account? <a href="registration.php">Register</a></p>
+    </div>
+    <?php } ?>
+</div>
